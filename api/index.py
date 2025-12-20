@@ -11,5 +11,6 @@ sys.path.insert(0, str(backend_path))
 from app.main import app
 
 # Export the FastAPI app for Vercel
+# @vercel/python should handle FastAPI apps directly
 handler = app
 
