@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 import uvicorn
 from fastapi import FastAPI
@@ -15,14 +19,10 @@ app = FastAPI(title="Physical AI Book Agent")
 # CORS configuration for local dev and Vercel production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=["*"],  # Allow all origins for Vercel deployment
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    allow_origin_regex=r"https://.*\.vercel\.app",
 )
 
 
@@ -65,11 +65,21 @@ async def api_ask(req: AskRequest):
         # answer should be a plain string
         return {"answer": answer}
 
+    except ValueError as e:
+        # Handle missing API key error
+        error_msg = str(e)
+        print(f"[ASK][ERROR] {error_msg}")
+        if "GOOGLE_API_KEY" in error_msg:
+            return {
+                "answer": "Error: GOOGLE_API_KEY environment variable is not set. Please configure it in Vercel environment variables.",
+                "error": "missing_api_key"
+            }
+        return {"answer": f"Error: {error_msg}", "error": "configuration_error"}
     except Exception as e:
         print(f"[ASK][ERROR] {repr(e)}")
         import traceback
         traceback.print_exc()
-        return {"answer": "Error: backend failed while calling the model. Check server logs."}
+        return {"answer": "Error: backend failed while calling the model. Check server logs.", "error": "runtime_error"}
 
 
 if __name__ == "__main__":
