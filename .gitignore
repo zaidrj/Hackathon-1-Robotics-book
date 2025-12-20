@@ -1,0 +1,20 @@
+# Node
+node_modules/
+build/
+dist/
+.docusaurus/
+.env
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+
+# General
+.DS_Store
+*.log
+*.swp
+*.tmp

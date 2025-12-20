@@ -1,0 +1,101 @@
+openapi: 3.0.0
+info:
+  title: Physical AI Book RAG API
+  version: 1.0.0
+  description: API for the Retrieval-Augmented Generation chatbot tutor.
+
+paths:
+  /api/ingest:
+    post:
+      summary: Ingest and index documents
+      description: >-
+        Triggers the backend to load all documents from the configured docs
+        directory, chunk them, create embeddings, and upsert them into the
+        vector store. This is an admin/dev operation.
+      responses:
+        '200':
+          description: Successful ingestion
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs_count:
+                    type: integer
+                    example: 50
+                  chunks_count:
+                    type: integer
+                    example: 500
+        '500':
+          description: Internal server error
+
+  /api/ask:
+    post:
+      summary: Ask a question
+      description: >-
+        Receives a user's question, retrieves relevant context from the
+        vector store, and generates an answer using an LLM.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AskRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AskResponse'
+        '422':
+          description: Validation Error
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    AskRequest:
+      type: object
+      required:
+        - question
+      properties:
+        question:
+          type: string
+          description: The user's question.
+          example: "What is Zero-Moment Point?"
+        session_id:
+          type: string
+          description: A unique identifier for the conversation session.
+          example: "abc-123-def-456"
+
+    AskResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+          description: The LLM-generated answer.
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+
+    Citation:
+      type: object
+      properties:
+        doc_id:
+          type: string
+          description: The unique ID of the source document.
+          example: "part-5-humanoid-locomotion/balancing-zmp.md"
+        chapter_title:
+          type: string
+          description: The title of the source chapter.
+          example: "Balancing and the Zero-Moment Point (ZMP)"
+        heading:
+          type: string
+          description: The subheading under which the cited text appeared.
+          example: "Defining the ZMP"
+        url:
+          type: string
+          description: The URL to the source document, with a hash to the specific heading if possible.
+          example: "/docs/part-5-humanoid-locomotion/balancing-zmp#defining-the-zmp"
