@@ -11,7 +11,11 @@ interface Message {
 
 export default function AskTheBook(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-  const apiUrl = (siteConfig.customFields?.apiUrl as string) || 'http://localhost:8001';
+  // Use relative URLs in production (Vercel), absolute URLs in development
+  const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+  const apiUrl = isProduction 
+    ? '' // Use relative URLs in production
+    : ((siteConfig.customFields?.apiUrl as string) || 'http://localhost:8001');
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
